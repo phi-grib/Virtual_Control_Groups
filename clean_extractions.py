@@ -6,27 +6,27 @@
 import pandas as pd
 import pubchempy as pcp
 
-class Cleaner(ABC):
+class Cleaner(object):
     """
         Class with functions for cleaning eTox data extractions from Vitic database
     """
 
     def __init__(self, dataframe: pd.DataFrame, timepoint_field: str,
-                                                timepoind_unit_field: str,
+                                                timepoint_unit_field: str,
                                                 animal_age_field: str,
                                                 animal_age_unit_field: str,
                                                 parameter_field: str,
                                                 value_field: float,
                                                 value_unit_field: str):
                                             
-    self.df = dataframe
-    self.timepoint_field = timepoint_field
-    self.timepoind_unit_field = timepoind_unit_field
-    self.animal_age_field = animal_age_field
-    self.animal_age_unit_field = animal_age_unit_field
-    self.parameter_field = parameter_field
-    self.value_field = value_field
-    self.value_unit_field = value_unit_field
+        self.df = dataframe
+        self.timepoint_field = timepoint_field
+        self.timepoint_unit_field = timepoint_unit_field
+        self.animal_age_field = animal_age_field
+        self.animal_age_unit_field = animal_age_unit_field
+        self.parameter_field = parameter_field
+        self.value_field = value_field
+        self.value_unit_field = value_unit_field
 
     def clean_dataframe(self) -> pd.DataFrame:
         """
@@ -52,7 +52,6 @@ class Cleaner(ABC):
         concentration_units = self.get_concentration_units()
         param_from_conc_unit_list = self.df.loc[self.df[self.value_unit_field].isin(concentration_units), self.parameter_field].unique()
         parameter_weight = self.get_parameter_weights(param_from_conc_unit_list)
-
         cleaned_dataframe = self.correct_units(concentration_units, parameter_weight)
 
         return cleaned_dataframe
@@ -85,19 +84,19 @@ class Cleaner(ABC):
             Transforms timepoint units into days
         """
 
-        timepoint_days_from_weeks = self.df.loc[self.df[self.timepoind_unit_field].isin(['Weeks', 'Week','WEEK','week']), self.timepoind_unit] * 7
-        timepoint_days_from_months = self.df.loc[self.df[self.timepoind_unit_field].isin(['Months','Month']), self.timepoind_unit] * 30
-        timepoint_days_from_years = self.df.loc[self.df[self.timepoind_unit_field].isin(['Years']), self.timepoind_unit] * 360
-        timepoint_days_from_hours = self.df.loc[self.df[self.timepoind_unit_field].isin(['Hours']), self.timepoind_unit] / 24
-        timepoint_days_from_minutes = self.df.loc[self.df[self.timepoind_unit_field].isin(['Minutes']), self.timepoind_unit] / 1440
-        timepoint_days_from_other_units = self.df.loc[self.df[self.timepoind_unit_field].isin(['Days','Day','Day(s)','day']), self.timepoind_unit].values
+        timepoint_days_from_weeks = self.df.loc[self.df[self.timepoint_unit_field].isin(['Weeks', 'Week','WEEK','week']), self.timepoint_field] * 7
+        timepoint_days_from_months = self.df.loc[self.df[self.timepoint_unit_field].isin(['Months','Month']), self.timepoint_field] * 30
+        timepoint_days_from_years = self.df.loc[self.df[self.timepoint_unit_field].isin(['Years']), self.timepoint_field] * 360
+        timepoint_days_from_hours = self.df.loc[self.df[self.timepoint_unit_field].isin(['Hours']), self.timepoint_field] / 24
+        timepoint_days_from_minutes = self.df.loc[self.df[self.timepoint_unit_field].isin(['Minutes']), self.timepoint_field] / 1440
+        timepoint_days_from_other_units = self.df.loc[self.df[self.timepoint_unit_field].isin(['Days','Day','Day(s)','day']), self.timepoint_field].values
 
-        self.df.loc[self.df[self.timepoind_unit_field].isin(['Weeks', 'Week','WEEK','week']), 'timepoint(days)'] = timepoint_days_from_weeks
-        self.df.loc[self.df[self.timepoind_unit_field].isin(['Months','Month']), 'timepoint(days)'] = timepoint_days_from_months
-        self.df.loc[self.df[self.timepoind_unit_field].isin(['Years']), 'timepoint(days)'] = timepoint_days_from_years
-        self.df.loc[self.df[self.timepoind_unit_field].isin(['Hours']), 'timepoint(days)'] = timepoint_days_from_hours
-        self.df.loc[self.df[self.timepoind_unit_field].isin(['Minutes']), 'timepoint(days)'] = timepoint_days_from_minutes
-        self.df.loc[self.df[self.timepoind_unit_field].isin(['Days','Day','Day(s)','day']), 'timepoint(days)'] = timepoint_days_from_other_units
+        self.df.loc[self.df[self.timepoint_unit_field].isin(['Weeks', 'Week','WEEK','week']), 'timepoint(days)'] = timepoint_days_from_weeks
+        self.df.loc[self.df[self.timepoint_unit_field].isin(['Months','Month']), 'timepoint(days)'] = timepoint_days_from_months
+        self.df.loc[self.df[self.timepoint_unit_field].isin(['Years']), 'timepoint(days)'] = timepoint_days_from_years
+        self.df.loc[self.df[self.timepoint_unit_field].isin(['Hours']), 'timepoint(days)'] = timepoint_days_from_hours
+        self.df.loc[self.df[self.timepoint_unit_field].isin(['Minutes']), 'timepoint(days)'] = timepoint_days_from_minutes
+        self.df.loc[self.df[self.timepoint_unit_field].isin(['Days','Day','Day(s)','day']), 'timepoint(days)'] = timepoint_days_from_other_units
 
         ### Sums the timepoint and the age to get the age at the end of the experiment
         self.df['timepoint_age(days)'] = self.df.iloc[:,-2:].sum(axis=1)
@@ -213,18 +212,19 @@ class Cleaner(ABC):
             
         return standard_val
 
-    def values_to_SI(df: pd.DataFrame, parameter_weight: dict, *args) -> list:
+    def values_to_SI(param_per_unit_df: pd.DataFrame, parameter_weight: dict, *args) -> list:
         """
             Checks each value amd converts it into its IUS equivalent
 
-            :param df: dataframe containing the parameter and the associated average value
+            :param param_per_unit_df: dataframe containing the parameter and the associated average value
             :param *args: list of units to be converted
 
             :return list_of_vals: list of converted values
         """
 
         list_of_vals = []
-        for index, row in df.iterrows():
+        print(param_per_unit_df)
+        for index, row in param_per_unit_df.iterrows():
             param = row[0]
             value = row[1]
             if param in parameter_weight.keys():
@@ -301,9 +301,10 @@ class Cleaner(ABC):
                     
                 if '%' in unit_ or '100ml' in unit_.replace(' ','').lower():
                     args_.append('deciliter')
-
+            
             param_per_unit = self.df.loc[(self.df[self.value_unit_field] == unit),
                                                     [self.parameter_field,self.value_field]]
+            
             list_of_vals = self.values_to_SI(param_per_unit, parameter_weight, args_)
             
             self.df.loc[(self.df[self.value_unit_field] == unit)  & (self.df[self.parameter_field].isin(parameter_weight.keys())),
