@@ -6,7 +6,7 @@
 import pandas as pd
 import pubchempy as pcp
 
-class Cleaner(object):
+class Cleaner():
     """
         Class with functions for cleaning eTox data extractions from Vitic database
     """
@@ -175,7 +175,7 @@ class Cleaner(object):
         
         return parameter_weight
             
-    def convert_values_to_SI(value: float, weight: float, arguments: list) -> float: 
+    def convert_values_to_SI(self, value: float, weight: float, arguments: list) -> float: 
         """
             Function to convert the values to the International Unit System
 
@@ -212,24 +212,24 @@ class Cleaner(object):
             
         return standard_val
 
-    def values_to_SI(param_per_unit_df: pd.DataFrame, parameter_weight: dict, *args) -> list:
+    def values_to_SI(self, parameter_per_unit: pd.DataFrame, parameter_weight: dict, *args) -> list:
         """
             Checks each value amd converts it into its IUS equivalent
 
-            :param param_per_unit_df: dataframe containing the parameter and the associated average value
+            :param parameter_per_unit: dataframe containing the parameter and the associated average value
             :param *args: list of units to be converted
 
             :return list_of_vals: list of converted values
         """
-
+        
         list_of_vals = []
-        print(param_per_unit_df)
-        for index, row in param_per_unit_df.iterrows():
+        
+        for index, row in parameter_per_unit.iterrows():
             param = row[0]
             value = row[1]
             if param in parameter_weight.keys():
                 weight = parameter_weight[param]
-                std_val = convert_values_to_SI(value,weight,args[0])
+                std_val = self.convert_values_to_SI(value,weight,args[0])
                 list_of_vals.append(std_val)
                 
         return list_of_vals
@@ -303,7 +303,7 @@ class Cleaner(object):
                     args_.append('deciliter')
             
             param_per_unit = self.df.loc[(self.df[self.value_unit_field] == unit),
-                                                    [self.parameter_field,self.value_field]]
+                                        [self.parameter_field,self.value_field]]
             
             list_of_vals = self.values_to_SI(param_per_unit, parameter_weight, args_)
             
