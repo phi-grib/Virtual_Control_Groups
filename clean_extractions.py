@@ -50,6 +50,7 @@ class Cleaner():
         # Corrects the units. Uses the weight of the parameter (i.e. Glucose) to get the proper concentration
         
         concentration_units = self.get_concentration_units()
+        print(concentration_units)
         param_from_conc_unit_list = self.df.loc[self.df[self.value_unit_field].isin(concentration_units), self.parameter_field].unique()
         parameter_weight = self.get_parameter_weights(param_from_conc_unit_list)
         cleaned_dataframe = self.correct_units(concentration_units, parameter_weight)
@@ -203,9 +204,9 @@ class Cleaner():
             standard_val = standard_val/weight
             
         if 'mililiter' in arguments:
-            standard_val = standard_val*1e-3
+            standard_val = standard_val*1000
         elif 'deciliter' in arguments:
-            standard_val = standard_val*1e-1
+            standard_val = standard_val*10
         
         if 'minute' in arguments:
             standard_val = standard_val*60
